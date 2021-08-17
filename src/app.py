@@ -12,15 +12,6 @@ from sklearn.utils import Bunch
 from PIL import Image
 
 
-# Lê uma imagem
-# def read_img(image_bytes, gray_scale=False):
-#     image_src = cv2.imread(image_bytes)
-#     if gray_scale:
-#         image_src = cv2.cvtColor(image_src, cv2.COLOR_BGR2GRAY)
-#     else:
-#         image_src = cv2.cvtColor(image_src, cv2.COLOR_BGR2RGB)
-#     return image_src
-
 
 # Converte os pixels da imagem para preto e/ou branco,
 # 	de acordo com um threshold informado
@@ -34,45 +25,13 @@ def binarize_pixel(image_matrix, thresh):
     return final_conv
 
 
-# Binariza uma imagem, ou seja, converte para preto e branco
-# def binarize_img(image_src, threshold=128, with_plot=False, gray_scale=False):
-#     # image_src = load_image(image_data)
-#     if not gray_scale:
-#         cmap_val = None
-#         r_comp, g_comp, b_comp = image_src[:, :,
-#                                            0], image_src[:, :, 1], image_src[:, :, 2]
-
-#         r_b = binarize_pixel(image_matrix=r_comp, thresh=threshold)
-#         g_b = binarize_pixel(image_matrix=g_comp, thresh=threshold)
-#         b_b = binarize_pixel(image_matrix=b_comp, thresh=threshold)
-
-#         image_b = np.dstack(tup=(r_b, g_b, b_b))
-#     else:
-#         cmap_val = 'gray'
-#         image_b = binarize_pixel(image_matrix=image_src, thresh=threshold)
-
-#     if with_plot:
-#         fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10, 20))
-
-#         ax1.axis("off")
-#         ax1.title.set_text('Original')
-
-#         ax2.axis("off")
-#         ax2.title.set_text("Convertido")
-
-#         ax1.imshow(image_src, cmap=cmap_val)
-#         ax2.imshow(image_b, cmap=cmap_val)
-
-#         # st.image(image_src)
-#         st.image(image_b)
-#         st.write(image_b)
-
-#     return image_b
-
+# Reduz o tamanho de uma imagem (64x64 >> 8x8)
+# realizando a média entre blocos de 8x8
 def reduce_blocks(image_src):
     return block_reduce(image_src/255/64, block_size=(8, 8)).round(2)
 
 
+# Converte a imagem para preto e branco
 def binarize(image_src):
     image_b = binarize_pixel(image_matrix=image_src, thresh=128)
 
@@ -101,6 +60,7 @@ def load_images_from_folder(folder):
     return images
 
 
+# Treina o modelo
 def train_images(images):
     # Convertendo imagens para preto e branco
     images_b = []
@@ -120,10 +80,25 @@ def train_images(images):
     st.image(images_r)
     # st.write(images_r)
 
-    # Cria a estrutura de dados 'Bunch'
-    b = Bunch()
 
     return
+
+
+# Faz o mapeamento de uma letra para um índice
+# A = 0
+# B = 1
+# C = 2
+# D = 3
+# ... etc
+def map_letter(letter):
+    return ord(letter.lower()) - 97
+
+
+# Prevê a letra conforme a imagem passada
+# usando o modelo treinado anteriormente
+def predict_letter(image_src):
+    # TODO: Implementar
+    return 'A'
 
 
 # Método principal
@@ -131,9 +106,9 @@ def main():
     st.set_option('deprecation.showfileUploaderEncoding', False)
 
     st.title('Trabalho 2 - Inteligência Artificial')
-    st.header('Reconhecimento de caracteres')
+    st.header('Como usar o App')
     
-    st.info('As imagens devem estar disponíveis na pasta "assets/images" com o formato ".png" e tamanho 64x64, numeradas de 0 a n.\n\nEx.: 0.png, 1.png, ..., n.png')
+    st.info('As imagens devem estar disponíveis na pasta "assets/images" no formato ".png" e tamanho 64x64, numeradas de 0 a n.\n\nEx.: 0.png, 1.png, ..., n.png')
 
     # Cria o menu lateral
     menu = st.sidebar
@@ -146,21 +121,38 @@ def main():
 
     train_images(images)
     
-    # A = 0
-    # B = 1
-    # C = 2
-    # D = 3
-    # E = 4
-    # F = 5
+    # Leitura do arquivo de mapeamento (imagens > letras)
+    st.header('Tabela de mapeamento')
+    st.info('Esta tabela mapeia os arquivos de imagem para seus devidos rótulos\n\nimage_file: nome do arquivo (sem o formato)\n\ntarget: rótulo do arquivo (letra a qual a imagem se refere)')
+    df = pd.read_csv('./assets/map.csv')
+    st.write('Tabela original (Resumo)')
+    st.write(df.head())
 
-    st.info('Tabela de mapeamento')
-    map_data = pd.read_csv('./assets/map.csv')
-    st.write(map_data)
- 
-    # target = np.array([])
-    # target_names = pd.DataFrame()
+    # Correção da coluna de rótulo
+    st.write('Conversão da tabela - Mapeamento letras -> números (Resumo)')
+    df['target'] = df['target'].apply(lambda x: map_letter(x))
+    st.write(df.head())
 
-    # menu.write('Diego')
+    # Cria a estrutura de dados 'Bunch'
+    b = Bunch()
+
+
+    # Adição de coluna com informações das imagens
+    
+
+    # Treino do modelo
+    st.header('Treinamento do Modelo')
+
+    # Acurácia
+    st.header('Acurácia do Modelo')
+
+    # Teste do Modelo
+    st.header('Teste do Modelo')
+    st.warning('Atenção! Aqui é necessário que seja inserida uma imagem que o modelo não tenha visto ainda!')
+
+    img_pred = st.file_uploader('Insira uma imagem aqui')
+    if img_pred is not None:
+        st.success('Esta imagem é a letra ' + predict_letter(img_pred))
 
 
 # Método Principal para rodar o programa
