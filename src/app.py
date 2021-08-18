@@ -35,16 +35,16 @@ def reduce_blocks(image_src):
 def binarize(image_src):
     image_b = binarize_pixel(image_matrix=image_src, thresh=128)
 
-    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(2, 4))
+    # fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(2, 4))
 
-    ax1.axis("off")
-    ax1.title.set_text('Original')
+    # ax1.axis("off")
+    # ax1.title.set_text('Original')
 
-    ax2.axis("off")
-    ax2.title.set_text("Convertido")
+    # ax2.axis("off")
+    # ax2.title.set_text("Convertido")
 
-    ax1.imshow(image_src, cmap='gray')
-    ax2.imshow(image_b, cmap='gray')
+    # ax1.imshow(image_src, cmap='gray')
+    # ax2.imshow(image_b, cmap='gray')
 
     return image_b
 
@@ -62,15 +62,16 @@ def load_images_from_folder(folder):
     return images
 
 
-# Treina o modelo
-def train_images(images):
+# Faz as transformações necessárias nas imagens para melhor
+# atender ao treinamento do modelo
+def transform_images(images):
     # Convertendo imagens para preto e branco
     images_b = []
     for image in images:
         images_b.append(binarize(image))
     st.write('Originais (64x64)')
     st.image(images)
-    st.write('Convertidos (64x64)')
+    st.write('Convertidas (64x64)')
     st.image(images_b)
 
     # Reduz os blocos das imagens (64x64 >> 8x8)
@@ -80,10 +81,8 @@ def train_images(images):
 
     st.write('Reduzidas (8x8)')
     st.image(images_r)
-    # st.write(images_r)
 
-
-    return
+    return images_r
 
 
 # Faz o mapeamento de uma letra para um índice
@@ -121,29 +120,29 @@ def main():
     images = load_images_from_folder('./assets/images')
     # st.image(images)
 
-    train_images(images)
+    images_r = transform_images(images)
     
     # Leitura do arquivo de mapeamento (imagens > letras)
     st.header('Tabela de mapeamento')
     st.info('Esta tabela mapeia os arquivos de imagem para seus devidos rótulos\n\nimage_file: nome do arquivo (sem o formato)\n\ntarget: rótulo do arquivo (letra a qual a imagem se refere)')
     df = pd.read_csv('./assets/map.csv')
     st.write('Tabela original (Resumo)')
-    st.write(df.head())
+    st.write(df)
 
     # Correção da coluna de rótulo
     st.write('Conversão da tabela - Mapeamento letras -> números (Resumo)')
     df['target'] = df['target'].apply(lambda x: map_letter(x))
-    st.write(df.head())
+    st.write(df)
 
-    # Cria a estrutura de dados 'Bunch'
-    b = Bunch()
-
-
-    # Adição de coluna com informações das imagens
-    
+    # Cria a estrutura de dados 'Bunch', contendo imagens, target e target_names
+    data = Bunch()
+    data.images = np.array(images_r)
+    data.target = df['target'].to_numpy()
+    st.write(data)
 
     # Treino do modelo
     st.header('Treinamento do Modelo')
+    train_model(data)
 
     # Acurácia
     st.header('Acurácia do Modelo')
