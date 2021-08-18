@@ -52,7 +52,9 @@ def binarize(image_src):
 # Carrega as imagens da pasta assets/images
 def load_images_from_folder(folder):
     images = []
-    for filename in os.listdir(folder):
+    filenames = os.listdir(folder)
+    filenames.sort()
+    for filename in filenames:
         img = cv2.imread(os.path.join(folder, filename))
         image_src = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         if img is not None:
