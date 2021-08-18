@@ -37,20 +37,7 @@ def reduce_blocks(image_src):
 
 # Converte a imagem para preto e branco
 def binarize(image_src):
-    image_b = binarize_pixel(image_matrix=image_src, thresh=128)
-
-    # fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(2, 4))
-
-    # ax1.axis("off")
-    # ax1.title.set_text('Original')
-
-    # ax2.axis("off")
-    # ax2.title.set_text("Convertido")
-
-    # ax1.imshow(image_src, cmap='gray')
-    # ax2.imshow(image_b, cmap='gray')
-
-    return image_b
+    return binarize_pixel(image_matrix=image_src, thresh=128)
 
 
 # Carrega as imagens da pasta assets/images
@@ -83,6 +70,7 @@ def transform_images(images):
     for image_b in images_b:
         images_r.append(reduce_blocks(image_b))
 
+    st.write(images_b[0])
     st.write('Reduzidas (8x8)')
     st.image(images_r)
 
@@ -99,11 +87,30 @@ def map_letter(letter):
     return ord(letter.lower()) - 97
 
 
-# Prevê a letra conforme a imagem passada
-# usando o modelo treinado anteriormente
-def predict_letter(image_src):
+# Prevê a letra conforme a imagem informada
+# (usa o modelo treinado anteriormente)
+def test_model(model, image_src):
     # TODO: Implementar
-    return 'A'
+
+    st.image(image_src)
+
+    image_b = binarize(image_src)
+    st.image(image_b)
+
+    st.write(image_b)
+    image_r = reduce_blocks(image_b)
+    st.image(image_r)
+
+    # image_res = image_b.reshape((1, -1))
+
+    # st.write(model.predict(image_res))
+
+    # TODO: Se passou tudo 100%, mostra uma mensagem de sucesso
+    # if img_pred is not None:
+    #     st.success('Esta imagem é a letra ' + predict_letter(img_pred))
+
+    
+    return
 
 
 # Treina o modelo (usando SVM)
@@ -155,13 +162,13 @@ def train_model(bunch):
 
     st.write(classification_report(y_test, pred))
 
-    st.write("Accuracy:", metrics.accuracy_score(y_test, pred))
+    st.write("Accuracy:", metrics.accuracy_score(y_test, pred).round(2))
 
     ###########
     ### ANN ###
     ###########
 
-    return
+    return model
 
 
 # Método principal
@@ -189,33 +196,32 @@ def main():
     st.info('Esta tabela mapeia os arquivos de imagem para seus devidos rótulos\n\nimage_file: nome do arquivo (sem o formato)\n\ntarget: rótulo do arquivo (letra a qual a imagem se refere)')
     df = pd.read_csv('./assets/map.csv')
     st.write('Tabela original (Resumo)')
-    st.write(df)
 
     # Correção da coluna de rótulo
-    st.write('Conversão da tabela - Mapeamento letras -> números (Resumo)')
-    df['target'] = df['target'].apply(lambda x: map_letter(x))
+    df['target_number'] = df['target'].apply(lambda x: map_letter(x))
     st.write(df)
 
     # Cria a estrutura de dados 'Bunch', contendo imagens, target e target_names
     data = Bunch()
     data.images = np.array(images_r)
-    data.target = df['target'].to_numpy()
-    st.write(data)
+    data.target = df['target_number'].to_numpy()
+    # st.write(data)
 
     # Treino do modelo
     st.header('Treinamento do Modelo')
-    train_model(data)
+    model = train_model(data)
 
     # Acurácia
-    st.header('Acurácia do Modelo')
+    st.header('Acurácia dos Modelos')
 
     # Teste do Modelo
     st.header('Teste do Modelo')
     st.warning('Atenção! Aqui é necessário que seja inserida uma imagem que o modelo não tenha visto ainda!')
 
-    img_pred = st.file_uploader('Insira uma imagem aqui')
-    if img_pred is not None:
-        st.success('Esta imagem é a letra ' + predict_letter(img_pred))
+    image_p = st.file_uploader('Insira uma imagem aqui', type='png')
+    if image_p is not None:
+        test_model(model, np.array(Image.open(image_p)))
+
 
 
 # Método Principal para rodar o programa
