@@ -7,6 +7,10 @@ import io
 import os
 import zipfile
 
+from sklearn.svm import SVC
+from sklearn import datasets, svm, metrics
+from sklearn.metrics import classification_report
+from sklearn.model_selection import train_test_split
 from skimage.measure import block_reduce
 from sklearn.utils import Bunch
 from PIL import Image
@@ -100,6 +104,64 @@ def map_letter(letter):
 def predict_letter(image_src):
     # TODO: Implementar
     return 'A'
+
+
+# Treina o modelo (usando SVM)
+# TODO: Deve ser feito para ANN (Artificial Neural Networks) também 
+def train_model(bunch):
+    # TODO: Alterar ncols & nRows para aceitar vários tamanhos de arrays de imagens
+    fig_before, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
+    for ax, image, label in zip(axes, bunch.images, bunch.target):
+        ax.set_axis_off()
+        ax.imshow(image, cmap=plt.cm.gray_r, interpolation='nearest')
+        ax.set_title('Índice: %i' % label)
+
+    st.pyplot(fig_before)
+
+    # Faz um "flat" no array de imagens. Ou seja, transforma o array para ficar em uma única linha
+    n_samples = len(bunch.images)
+    data = bunch.images.reshape((n_samples, -1))
+
+    st.write('Flattened', data)
+
+    # Divide os dados em 2 datasets: 50% dos dados para treino e 50% para testes
+    X_train, X_test, y_train, y_test = train_test_split(data, bunch.target, test_size=0.5, shuffle=True)
+    
+    st.write('X_train', X_train)
+    st.write('y_train', y_train)
+    st.write('X_test', X_test)
+    st.write('y_test', y_test)
+
+    ###########
+    ### SVM ###
+    ###########
+
+    # Treinamos o modelo SVM
+    model = SVC()
+    model.fit(X_train, y_train)
+
+    # Testamos o modelo prevendo o conjunto de testes
+    pred = model.predict(X_test)
+    st.write('Pred', pred)
+    
+    fig_after, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
+    for ax, image, prediction in zip(axes, X_test, pred):
+        ax.set_axis_off()
+        image = image.reshape(8, 8)
+        ax.imshow(image, cmap=plt.cm.gray_r, interpolation='nearest')
+        ax.set_title(f'Prediction: {prediction}')
+
+    st.pyplot(fig_after)
+
+    st.write(classification_report(y_test, pred))
+
+    st.write("Accuracy:", metrics.accuracy_score(y_test, pred))
+
+    ###########
+    ### ANN ###
+    ###########
+
+    return
 
 
 # Método principal
