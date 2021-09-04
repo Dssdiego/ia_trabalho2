@@ -104,8 +104,6 @@ def map_number(number):
 # Prevê a letra conforme a imagem informada
 # (usa o modelo treinado anteriormente)
 def test_model(model, image_src):
-    # TODO: Implementar
-
     st.image(image_src)
 
     image_b = binarize(image_src)
@@ -119,16 +117,13 @@ def test_model(model, image_src):
 
     # st.write(model.predict(image_res))
 
-    # TODO: Se passou tudo 100%, mostra uma mensagem de sucesso
     # if img_pred is not None:
     #     st.success('Esta imagem é a letra ' + predict_letter(img_pred))
-
     
     return
 
 
 # Treina o modelo (usando SVM)
-# TODO: Deve ser feito para ANN (Artificial Neural Networks) também 
 def train_model(bunch):
 
     st.markdown('*Amostra*')
@@ -243,6 +238,7 @@ def main():
     st.title('Trabalho 2 - Inteligência Artificial')
     st.markdown('**Aluno:** Diego Santos Seabra')
     st.markdown('**Matrícula:** 0040251')
+    st.markdown('**Objetivo:** Reconhecimento de letras cursivas através de imagens')
     
     st.header('Processamento de Imagens')
 
